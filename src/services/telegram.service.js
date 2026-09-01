@@ -1,3 +1,6 @@
+process.env.NTBA_FIX_350 = '1';
+process.env.NTBA_FIX_319 = '1';
+
 const TelegramBot = require('node-telegram-bot-api');
 const { BOT_TOKEN, CHAT_ID } = require('../config/env');
 
