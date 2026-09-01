@@ -1,29 +1,15 @@
 const TelegramBot = require('node-telegram-bot-api');
-const env = require('../config/env');
+const { BOT_TOKEN, CHAT_ID } = require('../config/env');
 
-let bot;
+const bot = new TelegramBot(BOT_TOKEN);
 
-function getBotInstance() {
-  if (!bot) {
-    bot = new TelegramBot(env.BOT_TOKEN, { polling: false });
-  }
-  return bot;
+async function sendTelegramMessage(text) {
+  return bot.sendMessage(CHAT_ID, text, { parse_mode: 'Markdown' });
 }
 
-/**
- * Sends a message to the configured Telegram chat.
- * @param {string} text - Message text (HTML formatted)
- * @param {string} [targetChatId] - Optional custom chat ID
- * @returns {Promise<Object>} Telegram API response
- */
-async function sendTelegramMessage(text, targetChatId = env.CHAT_ID) {
-  const instance = getBotInstance();
-  return await instance.sendMessage(targetChatId, text, {
-    parse_mode: 'HTML',
-  });
+async function sendTelegramDocument(base64Content, filename) {
+  const buffer = Buffer.from(base64Content, 'base64');
+  return bot.sendDocument(CHAT_ID, buffer, {}, { filename });
 }
 
-module.exports = {
-  sendTelegramMessage,
-  getBotInstance,
-};
+module.exports = { sendTelegramMessage, sendTelegramDocument };
