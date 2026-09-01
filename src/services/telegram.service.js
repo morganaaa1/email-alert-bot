@@ -9,7 +9,15 @@ async function sendTelegramMessage(text) {
 
 async function sendTelegramDocument(base64Content, filename) {
   const buffer = Buffer.from(base64Content, 'base64');
-  return bot.sendDocument(CHAT_ID, buffer, {}, { filename });
+  return bot.sendDocument(
+    CHAT_ID,
+    buffer,
+    {},
+    {
+      filename: filename || 'attachment',
+      contentType: 'application/octet-stream',
+    }
+  );
 }
 
 module.exports = { sendTelegramMessage, sendTelegramDocument };
