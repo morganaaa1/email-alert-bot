@@ -25,6 +25,9 @@ async function handleEmailAlert(req, res) {
 
     if (Array.isArray(attachments) && attachments.length > 0) {
       for (const file of attachments) {
+        // Skip gambar inline (misal logo signature email)
+        if (file.isInline) continue;
+
         if (file.contentBytes && file.name) {
           await sendTelegramDocument(file.contentBytes, file.name);
         }
