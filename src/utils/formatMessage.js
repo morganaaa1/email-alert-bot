@@ -16,7 +16,7 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
     `━━━━━━━━━━━━━━━\n` +
     `📌 *${escapeMarkdown(subject || '-')}*\n` +
     `👤 ${escapeMarkdown(from || '-')}\n` +
-    `🕒 ${formattedDate}\n`;
+    `🕒 ${escapeMarkdown(formattedDate)}\n`;
 
   if (Object.keys(parsedFields).length > 0) {
     // Kasus 1: body punya pola terstruktur (misal alert atomIQ)
