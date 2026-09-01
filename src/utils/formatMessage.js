@@ -14,16 +14,15 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
       });
 
   let message =
-    `🚨 *EMAIL ALERT*\n` +
+    `🚨 <b>EMAIL ALERT</b>\n` +
     `━━━━━━━━━━━━━━━\n` +
-    `📌 *${escapeMarkdown(subject || '-')}*\n` +
-    `👤 ${escapeMarkdown(from || '-')}\n` +
-    `🕒 ${escapeMarkdown(formattedDate)}\n`;
+    `📌 <b>${escapeHTML(subject || '-')}</b>\n` +
+    `👤 ${escapeHTML(from || '-')}\n` +
+    `🕒 ${escapeHTML(formattedDate)}\n`;
 
   const parsedKeys = Object.keys(parsedFields);
 
   if (parsedKeys.length > 0) {
-    // Kasus 1: body punya pola terstruktur (misal alert atomIQ)
     message += `━━━━━━━━━━━━━━━\n`;
 
     const priorityOrder = [
@@ -33,41 +32,36 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
 
     const displayedKeys = new Set();
 
-    // Tampilkan field sesuai prioritas
     for (const key of priorityOrder) {
       const matchedKey = parsedKeys.find((k) => k.toLowerCase() === key.toLowerCase());
       if (matchedKey && parsedFields[matchedKey]) {
         const emoji = fieldEmoji(matchedKey);
-        message += `${emoji} *${matchedKey}:* ${escapeMarkdown(parsedFields[matchedKey])}\n`;
+        message += `${emoji} <b>${escapeHTML(matchedKey)}:</b> ${escapeHTML(parsedFields[matchedKey])}\n`;
         displayedKeys.add(matchedKey);
       }
     }
 
-    // Tampilkan field terstruktur lain yang belum masuk priorityOrder
     for (const key of parsedKeys) {
       if (!displayedKeys.has(key) && key.toLowerCase() !== 'alert description' && parsedFields[key]) {
         const emoji = fieldEmoji(key);
-        message += `${emoji} *${key}:* ${escapeMarkdown(parsedFields[key])}\n`;
+        message += `${emoji} <b>${escapeHTML(key)}:</b> ${escapeHTML(parsedFields[key])}\n`;
       }
     }
 
-    // Tampilkan detail/deskripsi jika ada
     const alertDescKey = parsedKeys.find((k) => k.toLowerCase() === 'alert description');
     if (alertDescKey && parsedFields[alertDescKey]) {
-      message += `\n📋 *Detail:*\n${escapeMarkdown(truncate(parsedFields[alertDescKey], 500))}\n`;
+      message += `\n📋 <b>Detail:</b>\n${escapeHTML(truncate(parsedFields[alertDescKey], 500))}\n`;
     }
   } else {
-    // Kasus 2: body tidak terstruktur (email biasa)
     const displayBody = cleanBody.length > 0
-      ? truncate(cleanBody, 800)
-      : '_Tidak ada isi pesan (email kosong atau hanya berisi gambar/attachment)_';
-    message += `━━━━━━━━━━━━━━━\n💬 ${escapeMarkdown(displayBody)}\n`;
+      ? escapeHTML(truncate(cleanBody, 800))
+      : '<i>Tidak ada isi pesan (email kosong atau hanya berisi gambar/attachment)</i>';
+    message += `━━━━━━━━━━━━━━━\n💬 ${displayBody}\n`;
   }
 
   return message;
 }
 
-// Bersihkan noise dan HTML tag dari body email
 function cleanText(text) {
   if (!text) return '';
   return text
@@ -87,7 +81,6 @@ function cleanText(text) {
     .trim();
 }
 
-// Ekstrak field terstruktur ala "Key: Value" dari body alert (pemisah koma atau baris baru)
 function extractAlertFields(text) {
   const fields = {};
   const knownKeys = [
@@ -97,7 +90,6 @@ function extractAlertFields(text) {
   ];
 
   for (const key of knownKeys) {
-    // Match "Key: value" baik dipisah koma maupun newline
     const regex = new RegExp(
       `(?:^|[\\n,;])\\s*${key}\\s*:\\s*([^\\n,;]+|(?:[^\\n]+?(?=\\s*(?:${knownKeys.join('|')})\\s*:|$)))`,
       'i'
@@ -136,8 +128,11 @@ function truncate(text, max) {
   return text.slice(0, max) + '...';
 }
 
-function escapeMarkdown(text) {
-  return String(text).replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
+function escapeHTML(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 module.exports = { formatEmailAlert };

@@ -21,7 +21,7 @@ test('format alert atomIQ terstruktur dengan baris baru (newline)', () => {
   expect(result).toContain('Severity');
   expect(result).toContain('critical');
   expect(result).toContain('Metric');
-  expect(result).toContain('iops\\_in\\_progress');
+  expect(result).toContain('iops_in_progress');
 });
 
 test('format email biasa (non-terstruktur) tetap tampil aman', () => {

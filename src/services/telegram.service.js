@@ -7,7 +7,7 @@ const { BOT_TOKEN, CHAT_ID } = require('../config/env');
 const bot = new TelegramBot(BOT_TOKEN);
 
 async function sendTelegramMessage(text) {
-  return bot.sendMessage(CHAT_ID, text, { parse_mode: 'MarkdownV2' });
+  return bot.sendMessage(CHAT_ID, text, { parse_mode: 'HTML' });
 }
 
 async function sendTelegramDocument(base64Content, filename, caption = null) {
@@ -15,7 +15,7 @@ async function sendTelegramDocument(base64Content, filename, caption = null) {
   const options = {};
   if (caption) {
     options.caption = caption;
-    options.parse_mode = 'MarkdownV2';
+    options.parse_mode = 'HTML';
   }
   return bot.sendDocument(
     CHAT_ID,
