@@ -24,6 +24,44 @@ test('format alert atomIQ terstruktur dengan baris baru (newline)', () => {
   expect(result).toContain('iops_in_progress');
 });
 
+test('format alert atomIQ dengan format asli (Severity tanpa titik dua & Origin dengan spasi)', () => {
+  const sampleBody = `Dear atomIQ User,
+We have a new alert for kube-state-metrics PodRestart -
+Operation is looking for immediate investigation on the below alert.
+
+Received time: 2026-09-01 11:43:10 WIB
+Lob: MS360,
+Application: Infra,
+Monitor: kube-state-metrics
+Metric: PodRestart
+Group: exporter
+Origin : MS360
+Alert Description: Pod monitoring-operator has been restarted for 1 minutes,
+Raw_data: {"status": "firing"},
+Severity critical,
+Status open,
+Value None
+Insight: , count: 6`;
+
+  const result = formatEmailAlert({
+    subject: 'atomIQ Alert critical Infra kube-state-metrics PodRestart None None',
+    from: 'atomiqmonitoring@telkomsel.co.id',
+    body: sampleBody,
+    receivedTime: '2026-09-01T11:43:10+07:00',
+  });
+
+  expect(result).toContain('<b>Severity:</b> critical');
+  expect(result).toContain('<b>Status:</b> open');
+  expect(result).toContain('<b>Value:</b> None');
+  expect(result).toContain('<b>Lob:</b> MS360');
+  expect(result).toContain('<b>Application:</b> Infra');
+  expect(result).toContain('<b>Monitor:</b> kube-state-metrics');
+  expect(result).toContain('<b>Metric:</b> PodRestart');
+  expect(result).toContain('<b>Group:</b> exporter');
+  expect(result).toContain('<b>Origin:</b> MS360');
+  expect(result).toContain('Pod monitoring-operator has been restarted for 1 minutes');
+});
+
 test('format email biasa (non-terstruktur) tetap tampil aman', () => {
   const result = formatEmailAlert({
     subject: 'Tes',

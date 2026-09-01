@@ -30,27 +30,15 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
       'Monitor', 'Metric', 'Group', 'Origin', 'Received time'
     ];
 
-    const displayedKeys = new Set();
-
     for (const key of priorityOrder) {
-      const matchedKey = parsedKeys.find((k) => k.toLowerCase() === key.toLowerCase());
-      if (matchedKey && parsedFields[matchedKey]) {
-        const emoji = fieldEmoji(matchedKey);
-        message += `${emoji} <b>${escapeHTML(matchedKey)}:</b> ${escapeHTML(parsedFields[matchedKey])}\n`;
-        displayedKeys.add(matchedKey);
-      }
-    }
-
-    for (const key of parsedKeys) {
-      if (!displayedKeys.has(key) && key.toLowerCase() !== 'alert description' && parsedFields[key]) {
+      if (parsedFields[key]) {
         const emoji = fieldEmoji(key);
         message += `${emoji} <b>${escapeHTML(key)}:</b> ${escapeHTML(parsedFields[key])}\n`;
       }
     }
 
-    const alertDescKey = parsedKeys.find((k) => k.toLowerCase() === 'alert description');
-    if (alertDescKey && parsedFields[alertDescKey]) {
-      message += `\n📋 <b>Detail:</b>\n${escapeHTML(truncate(parsedFields[alertDescKey], 500))}\n`;
+    if (parsedFields['Alert Description']) {
+      message += `\n📋 <b>Detail:</b>\n${escapeHTML(truncate(parsedFields['Alert Description'], 500))}\n`;
     }
   } else {
     const displayBody = cleanBody.length > 0
@@ -83,17 +71,22 @@ function cleanText(text) {
 
 function extractAlertFields(text) {
   const fields = {};
-  const knownKeys = [
-    'Severity', 'Status', 'Value', 'Lob', 'Application',
-    'Monitor', 'Metric', 'Group', 'Origin', 'Received time',
-    'Alert Description', 'Additional Description', 'Raw_data', 'Insight'
+
+  const fieldPatterns = [
+    { key: 'Severity', regex: /(?:Severity\s*:?)\s*([a-zA-Z0-9_-]+)/i },
+    { key: 'Status', regex: /(?:Status\s*:?)\s*([a-zA-Z0-9_-]+)/i },
+    { key: 'Value', regex: /(?:Value\s*:?)\s*([^\n,;]+)/i },
+    { key: 'Lob', regex: /Lob\s*:\s*([^\n,;]+)/i },
+    { key: 'Application', regex: /Application\s*:\s*([^\n,;]+)/i },
+    { key: 'Monitor', regex: /Monitor\s*:\s*([^\n,;]+)/i },
+    { key: 'Metric', regex: /Metric\s*:\s*([^\n,;]+)/i },
+    { key: 'Group', regex: /Group\s*:\s*([^\n,;]+)/i },
+    { key: 'Origin', regex: /Origin\s*:\s*([^\n,;]+)/i },
+    { key: 'Received time', regex: /Received\s+time\s*:\s*([^\n,;]+)/i },
+    { key: 'Alert Description', regex: /Alert\s+Description\s*:\s*([^\n]+)/i },
   ];
 
-  for (const key of knownKeys) {
-    const regex = new RegExp(
-      `(?:^|[\\n,;])\\s*${key}\\s*:\\s*([^\\n,;]+|(?:[^\\n]+?(?=\\s*(?:${knownKeys.join('|')})\\s*:|$)))`,
-      'i'
-    );
+  for (const { key, regex } of fieldPatterns) {
     const match = text.match(regex);
     if (match && match[1]) {
       const val = match[1].trim().replace(/,$/, '');
@@ -119,8 +112,7 @@ function fieldEmoji(key) {
     Origin: '🔗',
     'Received time': '🕐',
   };
-  const matched = Object.keys(map).find((k) => k.toLowerCase() === String(key).toLowerCase());
-  return matched ? map[matched] : '•';
+  return map[key] || '•';
 }
 
 function truncate(text, max) {
