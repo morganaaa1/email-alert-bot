@@ -3,13 +3,15 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
   const parsedFields = extractAlertFields(cleanBody);
 
   const date = new Date(receivedTime);
-  const formattedDate = date.toLocaleString('id-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedDate = isNaN(date.getTime())
+    ? (receivedTime || '-')
+    : date.toLocaleString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
   let message =
     `🚨 *EMAIL ALERT*\n` +
@@ -18,7 +20,9 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
     `👤 ${escapeMarkdown(from || '-')}\n` +
     `🕒 ${escapeMarkdown(formattedDate)}\n`;
 
-  if (Object.keys(parsedFields).length > 0) {
+  const parsedKeys = Object.keys(parsedFields);
+
+  if (parsedKeys.length > 0) {
     // Kasus 1: body punya pola terstruktur (misal alert atomIQ)
     message += `━━━━━━━━━━━━━━━\n`;
 
@@ -27,20 +31,35 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
       'Monitor', 'Metric', 'Group', 'Origin', 'Received time'
     ];
 
+    const displayedKeys = new Set();
+
+    // Tampilkan field sesuai prioritas
     for (const key of priorityOrder) {
-      if (parsedFields[key]) {
+      const matchedKey = parsedKeys.find((k) => k.toLowerCase() === key.toLowerCase());
+      if (matchedKey && parsedFields[matchedKey]) {
+        const emoji = fieldEmoji(matchedKey);
+        message += `${emoji} *${matchedKey}:* ${escapeMarkdown(parsedFields[matchedKey])}\n`;
+        displayedKeys.add(matchedKey);
+      }
+    }
+
+    // Tampilkan field terstruktur lain yang belum masuk priorityOrder
+    for (const key of parsedKeys) {
+      if (!displayedKeys.has(key) && key.toLowerCase() !== 'alert description' && parsedFields[key]) {
         const emoji = fieldEmoji(key);
         message += `${emoji} *${key}:* ${escapeMarkdown(parsedFields[key])}\n`;
       }
     }
 
-    if (parsedFields['Alert Description']) {
-      message += `\n📋 *Detail:*\n${escapeMarkdown(truncate(parsedFields['Alert Description'], 400))}\n`;
+    // Tampilkan detail/deskripsi jika ada
+    const alertDescKey = parsedKeys.find((k) => k.toLowerCase() === 'alert description');
+    if (alertDescKey && parsedFields[alertDescKey]) {
+      message += `\n📋 *Detail:*\n${escapeMarkdown(truncate(parsedFields[alertDescKey], 500))}\n`;
     }
   } else {
-    // Kasus 2: body tidak terstruktur (email biasa, misal dari Monica)
+    // Kasus 2: body tidak terstruktur (email biasa)
     const displayBody = cleanBody.length > 0
-      ? truncate(cleanBody, 600)
+      ? truncate(cleanBody, 800)
       : '_Tidak ada isi pesan (email kosong atau hanya berisi gambar/attachment)_';
     message += `━━━━━━━━━━━━━━━\n💬 ${escapeMarkdown(displayBody)}\n`;
   }
@@ -48,32 +67,47 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
   return message;
 }
 
-// Bersihkan noise dari body preview email (backtick, newline berlebih, dll)
+// Bersihkan noise dan HTML tag dari body email
 function cleanText(text) {
+  if (!text) return '';
   return text
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
     .replace(/`/g, '')
     .replace(/\r\n/g, '\n')
     .replace(/\n{2,}/g, '\n')
     .trim();
 }
 
-// Ekstrak field terstruktur ala "Key: Value," dari body alert
+// Ekstrak field terstruktur ala "Key: Value" dari body alert (pemisah koma atau baris baru)
 function extractAlertFields(text) {
   const fields = {};
   const knownKeys = [
-    'Received time', 'Lob', 'Application', 'Monitor', 'Metric',
-    'Group', 'Origin', 'Alert Description', 'Additional Description',
-    'Raw_data', 'Severity', 'Status', 'Value', 'Insight'
+    'Severity', 'Status', 'Value', 'Lob', 'Application',
+    'Monitor', 'Metric', 'Group', 'Origin', 'Received time',
+    'Alert Description', 'Additional Description', 'Raw_data', 'Insight'
   ];
 
   for (const key of knownKeys) {
+    // Match "Key: value" baik dipisah koma maupun newline
     const regex = new RegExp(
-      `${key}\\s*:\\s*([^,\\n]+(?:,(?!\\s*(?:${knownKeys.join('|')})\\s*:)[^,\\n]*)*)`,
+      `(?:^|[\\n,;])\\s*${key}\\s*:\\s*([^\\n,;]+|(?:[^\\n]+?(?=\\s*(?:${knownKeys.join('|')})\\s*:|$)))`,
       'i'
     );
     const match = text.match(regex);
     if (match && match[1]) {
-      fields[key] = match[1].trim().replace(/,$/, '');
+      const val = match[1].trim().replace(/,$/, '');
+      if (val) {
+        fields[key] = val;
+      }
     }
   }
 
@@ -93,7 +127,8 @@ function fieldEmoji(key) {
     Origin: '🔗',
     'Received time': '🕐',
   };
-  return map[key] || '•';
+  const matched = Object.keys(map).find((k) => k.toLowerCase() === String(key).toLowerCase());
+  return matched ? map[matched] : '•';
 }
 
 function truncate(text, max) {
