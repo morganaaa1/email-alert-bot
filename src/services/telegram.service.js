@@ -10,12 +10,17 @@ async function sendTelegramMessage(text) {
   return bot.sendMessage(CHAT_ID, text, { parse_mode: 'MarkdownV2' });
 }
 
-async function sendTelegramDocument(base64Content, filename) {
+async function sendTelegramDocument(base64Content, filename, caption = null) {
   const buffer = Buffer.from(base64Content, 'base64');
+  const options = {};
+  if (caption) {
+    options.caption = caption;
+    options.parse_mode = 'MarkdownV2';
+  }
   return bot.sendDocument(
     CHAT_ID,
     buffer,
-    {},
+    options,
     {
       filename: filename || 'attachment',
       contentType: 'application/octet-stream',

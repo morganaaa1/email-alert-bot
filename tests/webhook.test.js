@@ -85,8 +85,13 @@ describe('POST /webhook/email-alert Integration Tests', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(sendTelegramMessage).toHaveBeenCalledTimes(1);
-    expect(sendTelegramDocument).toHaveBeenCalledWith('SGVsbG8=', 'report.pdf');
+    expect(sendTelegramMessage).toHaveBeenCalledTimes(0);
+    expect(sendTelegramDocument).toHaveBeenCalledTimes(1);
+    expect(sendTelegramDocument).toHaveBeenCalledWith(
+      'SGVsbG8=',
+      'report.pdf',
+      expect.any(String)
+    );
   });
 
   test('Should return 500 Internal Server Error if Telegram service throws an error', async () => {

@@ -2,8 +2,8 @@ const { formatEmailAlert } = require('../utils/formatMessage');
 const { sendTelegramMessage, sendTelegramDocument } = require('../services/telegram.service');
 
 async function handleEmailAlert(req, res) {
-  const { subject, from, body, receivedTime } = req.body;
-  let { attachments } = req.body;
+  const { subject, from, body, receivedTime } = req.body || {};
+  let { attachments } = req.body || {};
 
   if (!subject || !from) {
     return res.status(400).json({ success: false, message: 'Field subject dan from wajib diisi.' });
@@ -21,17 +21,23 @@ async function handleEmailAlert(req, res) {
 
   try {
     const message = formatEmailAlert({ subject, from, body, receivedTime });
-    await sendTelegramMessage(message);
 
-    if (Array.isArray(attachments) && attachments.length > 0) {
-      for (const file of attachments) {
-        // Skip gambar inline (misal logo signature email)
-        if (file.isInline) continue;
+    // Filter attachment yang valid (bukan inline logo/signature)
+    const validAttachments = Array.isArray(attachments)
+      ? attachments.filter((file) => !file.isInline && file.contentBytes && file.name)
+      : [];
 
-        if (file.contentBytes && file.name) {
-          await sendTelegramDocument(file.contentBytes, file.name);
-        }
+    if (validAttachments.length > 0) {
+      // Kirim attachment pertama bersamanya isi pesan teks sebagai caption (1 bubble chat)
+      await sendTelegramDocument(validAttachments[0].contentBytes, validAttachments[0].name, message);
+
+      // Jika ada attachment tambahan, kirim sisa file tanpa caption
+      for (let i = 1; i < validAttachments.length; i++) {
+        await sendTelegramDocument(validAttachments[i].contentBytes, validAttachments[i].name);
       }
+    } else {
+      // Jika tidak ada attachment, kirim pesan teks biasa
+      await sendTelegramMessage(message);
     }
 
     res.status(200).json({ success: true, message: 'Alert delivered.' });
