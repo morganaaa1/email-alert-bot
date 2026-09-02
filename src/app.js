@@ -1,5 +1,6 @@
 const express = require('express');
-const routes = require('./routes/webhook.route');
+const webhookRoute = require('./routes/webhook.route');
+const teamsRoute = require('./routes/teams.route');
 
 const app = express();
 
@@ -7,6 +8,8 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.use('/', routes);
+app.use('/', webhookRoute);
+app.use('/', teamsRoute);
 
 module.exports = app;
+
