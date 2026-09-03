@@ -22,3 +22,15 @@ test('format pesan Teams tanpa konten (misal cuma gambar)', () => {
   });
   expect(result).toContain('tidak memiliki konten teks');
 });
+
+test('format pesan Teams dengan konten bertipe JSON string', () => {
+  const result = formatTeamsMessage({
+    senderName: 'ali_n_ramadhan_x',
+    teamName: 'L2 R1',
+    channelName: 'R1 Alert Infra and Apps',
+    content: '{"contentType":"html","messageBodyContentType":"html","content":"Test\\n"}',
+    createdDateTime: '2026-09-03T10:46:00Z',
+  });
+  expect(result).toContain('Test');
+  expect(result).not.toContain('contentType');
+});

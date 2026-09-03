@@ -2,7 +2,23 @@
 function htmlToText(html) {
   if (!html) return '';
 
-  return html
+  let raw = html;
+  if (typeof raw === 'object' && raw !== null) {
+    raw = raw.content || '';
+  } else if (typeof raw === 'string' && raw.trim().startsWith('{')) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed.content !== 'undefined') {
+        raw = parsed.content;
+      }
+    } catch (e) {
+      // bukan JSON valid, gunakan string asli
+    }
+  }
+
+  if (typeof raw !== 'string') return '';
+
+  return raw
     .replace(/<at[^>]*>(.*?)<\/at>/gi, '@$1')  // <at>Nama</at> -> @Nama
     .replace(/<br\s*\/?>/gi, '\n')              // <br> -> newline
     .replace(/<\/p>/gi, '\n')                   // penutup paragraf -> newline
