@@ -34,3 +34,19 @@ test('format pesan Teams dengan konten bertipe JSON string', () => {
   expect(result).toContain('Test');
   expect(result).not.toContain('contentType');
 });
+
+test('format pesan Teams tidak menyisipkan backslash escape', () => {
+  const result = formatTeamsMessage({
+    senderName: 'ES_RB20759',
+    teamName: 'L2 R1',
+    channelName: 'R1 Alert Infra and Apps',
+    content: 'TBS throttling found on last 20m\nTIME : 2026-09-04T01:10:56.026Z\nMESSAGE : (APR1-013100) Entering queue throttling mode.',
+    createdDateTime: '2026-09-04T01:33:00Z',
+  });
+  expect(result).not.toContain('\\.');
+  expect(result).not.toContain('\\-');
+  expect(result).not.toContain('\\_');
+  expect(result).not.toContain('\\(');
+  expect(result).toContain('2026-09-04T01:10:56.026Z');
+});
+
