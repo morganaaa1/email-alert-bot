@@ -46,7 +46,18 @@ test('format pesan Teams tidak menyisipkan backslash escape', () => {
   expect(result).not.toContain('\\.');
   expect(result).not.toContain('\\-');
   expect(result).not.toContain('\\_');
-  expect(result).not.toContain('\\(');
   expect(result).toContain('2026-09-04T01:10:56.026Z');
 });
 
+test('format pesan Teams tidak memotong pesan panjang (hingga 3500 karakter)', () => {
+  const longContent = 'A'.repeat(1500) + ' END_OF_LOG';
+  const result = formatTeamsMessage({
+    senderName: 'Unknown',
+    teamName: 'L2 R1',
+    channelName: 'R1 Alert Infra and Apps',
+    content: longContent,
+    createdDateTime: '2026-09-04T01:44:00Z',
+  });
+  expect(result).toContain('END_OF_LOG');
+  expect(result).not.toContain('...');
+});

@@ -3,7 +3,7 @@ const { htmlToText } = require('./htmlToText');
 function formatTeamsMessage({ senderName, channelName, teamName, content, createdDateTime }) {
   const cleanContent = htmlToText(content || '');
   const displayContent = cleanContent.length > 0
-    ? truncate(cleanContent, 800)
+    ? truncate(cleanContent, 3500)
     : '<i>Pesan tidak memiliki konten teks (mungkin berupa gambar/file saja)</i>';
 
   const date = new Date(createdDateTime);
