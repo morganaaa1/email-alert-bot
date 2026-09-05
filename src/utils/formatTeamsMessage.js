@@ -18,12 +18,11 @@ function formatTeamsMessage({ senderName, channelName, teamName, content, create
       });
 
   return (
-    `💬 <b>TEAMS MESSAGE</b>\n` +
-    `━━━━━━━━━━━━━━━\n` +
-    `👤 <b>${escapeHTML(senderName || 'Unknown')}</b>\n` +
-    `📂 ${escapeHTML(teamName || '-')} / ${escapeHTML(channelName || '-')}\n` +
-    `🕒 ${escapeHTML(formattedDate)}\n` +
-    `━━━━━━━━━━━━━━━\n` +
+    `<b>[TEAMS MESSAGE] ${escapeHTML(teamName || '-')} / ${escapeHTML(channelName || '-')}</b>\n` +
+    `========================================\n` +
+    `TIMESTAMP   : ${escapeHTML(formattedDate)}\n` +
+    `SENDER      : ${escapeHTML(senderName || 'Unknown')}\n` +
+    `========================================\n` +
     `${cleanContent.length > 0 ? escapeHTML(displayContent) : displayContent}\n`
   );
 }

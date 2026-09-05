@@ -13,38 +13,39 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
         minute: '2-digit',
       });
 
+  const severityUpper = (parsedFields['Severity'] || 'ALERT').toUpperCase();
+
   let message =
-    `🚨 <b>EMAIL ALERT</b>\n` +
-    `━━━━━━━━━━━━━━━\n` +
-    `📌 <b>${escapeHTML(subject || '-')}</b>\n` +
-    `👤 ${escapeHTML(from || '-')}\n` +
-    `🕒 ${escapeHTML(formattedDate)}\n`;
+    `<b>[ALERT] [${escapeHTML(severityUpper)}] ${escapeHTML(subject || '-')}</b>\n` +
+    `========================================\n` +
+    `TIMESTAMP   : ${escapeHTML(formattedDate)}\n` +
+    `SENDER      : ${escapeHTML(from || '-')}\n`;
 
   const parsedKeys = Object.keys(parsedFields);
 
   if (parsedKeys.length > 0) {
-    message += `━━━━━━━━━━━━━━━\n`;
-
     const priorityOrder = [
       'Severity', 'Status', 'Value', 'Lob', 'Application',
       'Monitor', 'Metric', 'Group', 'Origin', 'Received time'
     ];
 
     for (const key of priorityOrder) {
-      if (parsedFields[key]) {
-        const emoji = fieldEmoji(key);
-        message += `${emoji} <b>${escapeHTML(key)}:</b> ${escapeHTML(parsedFields[key])}\n`;
+      if (parsedFields[key] && key !== 'Received time') {
+        const paddedKey = key.toUpperCase().padEnd(11, ' ');
+        message += `${escapeHTML(paddedKey)} : ${escapeHTML(parsedFields[key])}\n`;
       }
     }
 
+    message += `========================================\n`;
+
     if (parsedFields['Alert Description']) {
-      message += `\n📋 <b>Detail:</b>\n${escapeHTML(truncate(parsedFields['Alert Description'], 500))}\n`;
+      message += `ALERT DETAIL:\n${escapeHTML(truncate(parsedFields['Alert Description'], 1000))}\n`;
     }
   } else {
     const displayBody = cleanBody.length > 0
-      ? escapeHTML(truncate(cleanBody, 800))
-      : '<i>Tidak ada isi pesan (email kosong atau hanya berisi gambar/attachment)</i>';
-    message += `━━━━━━━━━━━━━━━\n💬 ${displayBody}\n`;
+      ? escapeHTML(truncate(cleanBody, 1000))
+      : 'No text content available in email body.';
+    message += `========================================\n${displayBody}\n`;
   }
 
   return message;

@@ -7,7 +7,7 @@ test('format alert atomIQ terstruktur', () => {
     body: 'Lob: TKS, Application: TC, Monitor: TBS_INDIRA-Extract-Files-CO-Status, Metric: CNT, Severity: critical, Status: open, Value: 10',
     receivedTime: '2026-09-01T10:35:17+07:00',
   });
-  expect(result).toContain('Severity');
+  expect(result).toContain('SEVERITY');
   expect(result).toContain('critical');
 });
 
@@ -18,9 +18,9 @@ test('format alert atomIQ terstruktur dengan baris baru (newline)', () => {
     body: 'Lob: TKS\nApplication: IMDG\nMonitor: diskio\nMetric: iops_in_progress\nSeverity: critical\nStatus: open\nValue: 25\nReceived time: 2026-09-01 12:00:24 WIB',
     receivedTime: '2026-09-01T12:00:24+07:00',
   });
-  expect(result).toContain('Severity');
+  expect(result).toContain('SEVERITY');
   expect(result).toContain('critical');
-  expect(result).toContain('Metric');
+  expect(result).toContain('METRIC');
   expect(result).toContain('iops_in_progress');
 });
 
@@ -50,15 +50,15 @@ Insight: , count: 6`;
     receivedTime: '2026-09-01T11:43:10+07:00',
   });
 
-  expect(result).toContain('<b>Severity:</b> critical');
-  expect(result).toContain('<b>Status:</b> open');
-  expect(result).toContain('<b>Value:</b> None');
-  expect(result).toContain('<b>Lob:</b> MS360');
-  expect(result).toContain('<b>Application:</b> Infra');
-  expect(result).toContain('<b>Monitor:</b> kube-state-metrics');
-  expect(result).toContain('<b>Metric:</b> PodRestart');
-  expect(result).toContain('<b>Group:</b> exporter');
-  expect(result).toContain('<b>Origin:</b> MS360');
+  expect(result).toContain('SEVERITY    : critical');
+  expect(result).toContain('STATUS      : open');
+  expect(result).toContain('VALUE       : None');
+  expect(result).toContain('LOB         : MS360');
+  expect(result).toContain('APPLICATION : Infra');
+  expect(result).toContain('MONITOR     : kube-state-metrics');
+  expect(result).toContain('METRIC      : PodRestart');
+  expect(result).toContain('GROUP       : exporter');
+  expect(result).toContain('ORIGIN      : MS360');
   expect(result).toContain('Pod monitoring-operator has been restarted for 1 minutes');
 });
 
@@ -88,9 +88,9 @@ Insight: , count: 7, ticket: , self healing: graph:`;
     receivedTime: '2026-09-05T22:00:31+07:00',
   });
 
-  expect(result).toContain('<b>Severity:</b> critical');
-  expect(result).toContain('<b>Status:</b> open');
-  expect(result).toContain('<b>Value:</b> 98.79');
+  expect(result).toContain('SEVERITY    : critical');
+  expect(result).toContain('STATUS      : open');
+  expect(result).toContain('VALUE       : 98.79');
   expect(result).toContain('Group: "App_Query"');
   expect(result).toContain('with DATA_SLICE as');
 });
@@ -102,5 +102,5 @@ test('format email biasa (non-terstruktur) tetap tampil aman', () => {
     body: '',
     receivedTime: '2026-09-01T10:53:19+07:00',
   });
-  expect(result).toContain('Tidak ada isi pesan');
+  expect(result).toContain('No text content available');
 });
