@@ -62,6 +62,39 @@ Insight: , count: 6`;
   expect(result).toContain('Pod monitoring-operator has been restarted for 1 minutes');
 });
 
+test('format alert atomIQ dengan Alert Description panjang dan entity HTML', () => {
+  const sampleBody = `Dear atomIQ User,
+We have a new alert for TBS_ES_Process_Status RB_POS-BIG-CUST -
+Operation is looking for immediate investigation on the below alert.
+
+Received time: 2026-09-05 22:00:31 WIB
+Lob: TKS,
+Application: TC,
+Monitor: TBS_ES_Process_Status
+Metric: RB_POS-BIG-CUST
+Group: App_Query
+Origin : M2A_Static_Alerts
+Alert Description: Group: &quot;App_Query&quot;, Monitor: &quot;TBS_ES_Process_Status&quot;, Instance: &quot;TBS_ES_Process_Status&quot;, last value: &quot;98.79&quot; , Additional Description: &quot;with DATA_SLICE as ( select GSPIGC.PROCESS_GROUP_CODE, GSPIGC.DESCRIPTION from ADJ1_AUDIT_COUNTERS AAC where (G SPIGC.PROCESS_GROUP_CODE like 'ES_CR%' or GSPIGC.PROCESS_GROUP_CODE l",
+Raw_data: None,
+Severity critical,
+Status open,
+Value 98.79
+Insight: , count: 7, ticket: , self healing: graph:`;
+
+  const result = formatEmailAlert({
+    subject: 'atomIQ Alert critical TC TBS_ES_Process_Status RB_POS-BIG-CUST r1tbspatmiqapp4.r1.telkomsel.co.id 98.79',
+    from: 'atomiqmonitoring@telkomsel.co.id',
+    body: sampleBody,
+    receivedTime: '2026-09-05T22:00:31+07:00',
+  });
+
+  expect(result).toContain('<b>Severity:</b> critical');
+  expect(result).toContain('<b>Status:</b> open');
+  expect(result).toContain('<b>Value:</b> 98.79');
+  expect(result).toContain('Group: "App_Query"');
+  expect(result).toContain('with DATA_SLICE as');
+});
+
 test('format email biasa (non-terstruktur) tetap tampil aman', () => {
   const result = formatEmailAlert({
     subject: 'Tes',

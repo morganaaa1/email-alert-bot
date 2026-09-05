@@ -63,6 +63,7 @@ function cleanText(text) {
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
     .replace(/`/g, '')
     .replace(/\r\n/g, '\n')
     .replace(/\n{2,}/g, '\n')
@@ -75,21 +76,21 @@ function extractAlertFields(text) {
   const fieldPatterns = [
     { key: 'Severity', regex: /(?:Severity\s*:?)\s*([a-zA-Z0-9_-]+)/i },
     { key: 'Status', regex: /(?:Status\s*:?)\s*([a-zA-Z0-9_-]+)/i },
-    { key: 'Value', regex: /(?:Value\s*:?)\s*([^\n,;]+)/i },
-    { key: 'Lob', regex: /Lob\s*:\s*([^\n,;]+)/i },
-    { key: 'Application', regex: /Application\s*:\s*([^\n,;]+)/i },
-    { key: 'Monitor', regex: /Monitor\s*:\s*([^\n,;]+)/i },
-    { key: 'Metric', regex: /Metric\s*:\s*([^\n,;]+)/i },
-    { key: 'Group', regex: /Group\s*:\s*([^\n,;]+)/i },
-    { key: 'Origin', regex: /Origin\s*:\s*([^\n,;]+)/i },
-    { key: 'Received time', regex: /Received\s+time\s*:\s*([^\n,;]+)/i },
-    { key: 'Alert Description', regex: /Alert\s+Description\s*:\s*([^\n]+)/i },
+    { key: 'Value', regex: /(?:Value\s*:?)\s*([^\n,;\r]+)/i },
+    { key: 'Lob', regex: /Lob\s*:\s*([^\n,;\r]+)/i },
+    { key: 'Application', regex: /Application\s*:\s*([^\n,;\r]+)/i },
+    { key: 'Monitor', regex: /Monitor\s*:\s*([^\n,;\r]+)/i },
+    { key: 'Metric', regex: /Metric\s*:\s*([^\n,;\r]+)/i },
+    { key: 'Group', regex: /Group\s*:\s*([^\n,;\r]+)/i },
+    { key: 'Origin', regex: /Origin\s*:\s*([^\n,;\r]+)/i },
+    { key: 'Received time', regex: /Received\s+time\s*:\s*([^\n,;\r]+)/i },
+    { key: 'Alert Description', regex: /Alert\s+Description\s*:\s*([\s\S]*?)(?=(?:,\s*\n?Raw_data:|\nRaw_data:|\nSeverity|\nStatus|\nValue|\nInsight:|$))/i },
   ];
 
   for (const { key, regex } of fieldPatterns) {
     const match = text.match(regex);
     if (match && match[1]) {
-      const val = match[1].trim().replace(/,$/, '');
+      let val = match[1].trim().replace(/,$/, '').trim();
       if (val) {
         fields[key] = val;
       }
