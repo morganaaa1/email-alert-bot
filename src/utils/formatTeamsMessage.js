@@ -10,11 +10,13 @@ function formatTeamsMessage({ senderName, channelName, teamName, content, create
   const formattedDate = isNaN(date.getTime())
     ? (createdDateTime || '-')
     : date.toLocaleString('id-ID', {
+        timeZone: process.env.TIMEZONE || 'Asia/Jakarta',
         day: '2-digit',
         month: 'short',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
+        hour12: false,
       });
 
   return (

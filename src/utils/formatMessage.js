@@ -6,11 +6,13 @@ function formatEmailAlert({ subject, from, body, receivedTime }) {
   const formattedDate = isNaN(date.getTime())
     ? (receivedTime || '-')
     : date.toLocaleString('id-ID', {
+        timeZone: process.env.TIMEZONE || 'Asia/Jakarta',
         day: '2-digit',
         month: 'short',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
+        hour12: false,
       });
 
   const severityUpper = (parsedFields['Severity'] || 'ALERT').toUpperCase();
